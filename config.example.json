@@ -1,0 +1,68 @@
+{
+ "_readme": "Copy to config.json. Every path and setting the tool uses. See docs/SETTINGS.md for why each value is what it is.",
+ "comfy": {
+  "dir": "~/ComfyUI",
+  "python": "~/ComfyUI/venv/bin/python",
+  "port": 8188,
+  "run_with_sudo": false,
+  "hf_home": "",
+  "cuda_floor_gib": 8,
+  "memory_max_gib": 0,
+  "min_free_gib_to_launch": 60,
+  "log": "/tmp/lipsync_comfy.log"
+ },
+ "models": {
+  "workflow": "workflows/ltx23_two_stage_av.json",
+  "checkpoint": "ltx-2.3-22b-dev-distilled0.5-character1.0-baked.safetensors",
+  "baked": true,
+  "character_lora": "",
+  "character_lora_strength_base": 0.5,
+  "character_lora_strength_refine": 0.9
+ },
+ "render": {
+  "fps": 24,
+  "cfg": 1.0,
+  "i2v_strength": 0.92,
+  "stage1_width": 544,
+  "stage1_height": 960,
+  "final_width": 1080,
+  "final_height": 1920,
+  "lead_in_s": 0.6,
+  "prompt": "She sings the line straight to the camera, natural lip movement, warm expression; the camera drifts slowly and steadily sideways.",
+  "timeout_s": 10800,
+  "seed": 0,
+  "cache_warden": {"free_min_gib": 30, "period_s": 5}
+ },
+ "character": {
+  "name": "the character",
+  "description": "a young woman with long platinum-white hair, light blue eyes and fair skin",
+  "canon": "~/character/canon.png",
+  "references": ["~/character/ref_01.jpg", "~/character/ref_02.jpg"],
+  "identity_min": 0.45,
+  "face_height_target": 0.31
+ },
+ "frames": {
+  "generator": "codex",
+  "codex_model": "gpt-5",
+  "codex_effort": "low",
+  "tries": 2,
+  "history": "state/frames_history.json"
+ },
+ "hook": {
+  "min_s": 8.0,
+  "max_s": 20.0,
+  "bars_options": [4, 8, 12, 16],
+  "loop_residue_ms": 25,
+  "words_per_s_max": 1.9,
+  "words_per_s_min": 0.8,
+  "rapid_run_gap_s": 0.28,
+  "rapid_run_len": 4,
+  "syllables_per_s_max": 3.0,
+  "gap_min_s": 0.25,
+  "demucs": "",
+  "whisper_model": "small"
+ },
+ "tools_python": "~/venvs/lipsync-tools/bin/python",
+ "out_dir": "out",
+ "state_dir": "state"
+}
