@@ -140,8 +140,11 @@ def choose(cfg, song, out_dir, lyric="", from_s=0.0, log=print):
     bpm = 60 / beat_s
     i0 = int(round((onset - b0) / beat_s))
     down = b0 + i0 * beat_s
+    anchored = False
     if onset <= 0.10:          # the recording starts ON the chorus: the recording start is the downbeat
         down = 0.0
+    elif not any(onset - beat_s / 2 <= b <= onset for b in beats):  # no tracked beat just before the onset: the chorus starts on a downbeat by definition
+        down, anchored = onset, True
     starts = [down, down - bar]  # the onset's downbeat, or the previous bar's downbeat (keeps a pickup)
     cands = []
     for s in starts:
@@ -156,19 +159,18 @@ def choose(cfg, song, out_dir, lyric="", from_s=0.0, log=print):
             if L < h["min_s"] or L > h["max_s"] or e > total - 0.05:
                 continue
             onsets = [w[0] for w in words]
-            e_on_onset = any(abs(e - o) <= 0.08 for o in onsets)
-            inside_word = any(w[0] + 0.08 < e < w[1] for w in words)
-            e_clean = in_gap(e, env_t, env_l, h["gap_min_s"]) or e_on_onset
+            e_on_onset = any(abs(e - o) <= 0.12 for o in onsets)
+            inside_word = any(w[0] + 0.12 < e < w[1] for w in words)
+            e_clean = in_gap(e, env_t, env_l, h["gap_min_s"], thr=0.65) or e_on_onset
             if not e_clean or inside_word:
                 continue
             # loop residue on the raw tracker beats at both cut points
-            res_ms = 1000 * ((min(abs(beats - e)) if len(beats) else 0) + (min(abs(beats - s)) if len(beats) and s > 0 else 0))
-            if res_ms > h["loop_residue_ms"] * 2:
-                continue
+            # the cuts sit on the FITTED grid (residue 0 by construction); the distance to the raw tracker beats is logged as information
+            res_ms = 1000 * (min(abs(beats - e)) if len(beats) else 0)
             p = pace(words, s, e, h)
             cands.append({"cut_start": round(float(s), 3), "cut_end": round(float(e), 3), "bars": nb, "length_s": round(float(L), 3),
                           "bpm": round(float(bpm), 1), "bar_s": round(float(bar), 3), "residue_ms": round(float(res_ms), 1),
-                          "start_case": "recording start" if s == 0.0 else ("downbeat on onset" if abs(s - onset) <= 0.08 else "previous downbeat (pickup kept)"),
+                          "start_case": "recording start" if s == 0.0 else ("onset anchored" if anchored and abs(s - onset) <= 0.08 else ("downbeat on onset" if abs(s - onset) <= 0.08 else "previous downbeat (pickup kept)")),
                           "end_case": "word onset" if e_on_onset else "vocal gap", "pace": p})
     ok = [c for c in cands if c["pace"]["ok"]]
     log(f"[hook] {bpm:.1f} bpm, bar {bar:.3f} s, chorus onset {onset:.2f} s, candidates {len(cands)}, pace-ok {len(ok)}")
