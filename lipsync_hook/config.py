@@ -51,7 +51,7 @@ DEFAULTS = {
     },
     "character": {
         "name": "the character",
-        "description": "a young woman with long platinum-white hair, light blue eyes and fair skin",
+        "description": "<one sentence: hair, eyes, skin, age range; written so a stranger would recognise the references>",
         "canon": "",                                # one reference image (full identity), REQUIRED for Codex frames and the gate
         "references": [],                           # up to 4 more accepted frames (style + identity), optional
         "identity_min": 0.45,                       # cosine to the canon face, start-frame gate

@@ -35,7 +35,7 @@
  },
  "character": {
   "name": "the character",
-  "description": "a young woman with long platinum-white hair, light blue eyes and fair skin",
+  "description": "<one sentence: hair, eyes, skin, age range; written so a stranger would recognise the references>",
   "canon": "~/character/canon.png",
   "references": ["~/character/ref_01.jpg", "~/character/ref_02.jpg"],
   "identity_min": 0.45,
