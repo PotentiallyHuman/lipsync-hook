@@ -22,7 +22,13 @@ def probe(path):
                          capture_output=True, text=True).stdout
     d = json.loads(out)
     s = d["streams"][0]
-    fr = lambda x: round(eval(x), 3) if "/" in x and not x.endswith("/0") else None  # noqa: E731
+    def fr(x):
+        from fractions import Fraction
+        try:
+            f = Fraction(x)
+            return round(float(f), 3) if f else None
+        except (ValueError, ZeroDivisionError):
+            return None
     pts = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "packet=pts_time", "-of", "csv=p=0", path],
                          capture_output=True, text=True).stdout.split()
     t = np.array(sorted(float(x) for x in pts if x and x != "N/A"))

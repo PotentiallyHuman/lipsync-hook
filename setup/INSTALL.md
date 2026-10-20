@@ -54,3 +54,12 @@ python -m lipsync_hook.comfy_server status        # free memory, server state
 bin/make_hook.py --song some_song.wav --lyric "first words" --dry   # hook window + start frame, no render
 bin/make_hook.py --song some_song.wav --lyric "first words"         # the whole thing (~1 h for a 10 s hook)
 ```
+
+## 8. Two things to know before you run it
+- The frame generator runs the Codex CLI with its sandbox OFF (`--dangerously-bypass-approvals-and-sandbox`): Codex's
+  Linux sandbox (bwrap) does not work on the DGX Spark kernel. The task it runs is fixed (read two files, call the
+  image tool, list the newest picture) and every other Codex feature is switched off, but it is an unsandboxed
+  process on your machine. If your kernel supports bwrap, remove that flag in `lipsync_hook/frame_gen.py`.
+- `--lyric` is passed on the command line and is visible in the process list while the hook finder runs; it is never
+  written to logs or output files. Keep hints to a few words.
+

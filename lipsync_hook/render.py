@@ -67,6 +67,8 @@ def _copy_into(path, dst, sudo=False):
     try:
         shutil.copyfile(path, dst)
     except PermissionError:
+        if not sudo:
+            raise
         subprocess.run(["sudo", "-n", "cp", str(path), str(dst)], check=True)
         subprocess.run(["sudo", "-n", "chmod", "644", str(dst)], check=False)
 
@@ -191,8 +193,9 @@ def render_clip(cfg, start_png, hook_wav, out_dir, prompt=None, hook_meta=None, 
                     str(slice_wav)], check=True)
     tag = f"lipsync_{int(time.time()) % 1000000}"
     still_name, audio_name = f"{tag}.png", f"{tag}.wav"
-    _copy_into(still, Path(cfg["comfy"]["input_dir"]) / still_name)
-    _copy_into(slice_wav, Path(cfg["comfy"]["input_dir"]) / audio_name)
+    sudo = bool(cfg["comfy"].get("run_with_sudo"))
+    _copy_into(still, Path(cfg["comfy"]["input_dir"]) / still_name, sudo)
+    _copy_into(slice_wav, Path(cfg["comfy"]["input_dir"]) / audio_name, sudo)
     seed = int(r.get("seed") or 0) or random.randint(1, 2**31)
     wf = build_workflow(cfg, still_name, audio_name, n, prompt or r["prompt"], r["negative"], seed)
     (out / "workflow_submitted.json").write_text(json.dumps(wf, indent=1))

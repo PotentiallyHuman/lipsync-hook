@@ -59,8 +59,8 @@ def meminfo():
 
 
 def drop_caches():
-    r = subprocess.run("sudo -n sync; echo 3 | sudo -n tee /proc/sys/vm/drop_caches >/dev/null", shell=True,
-                       timeout=180, capture_output=True)
+    subprocess.run(["sudo", "-n", "sync"], timeout=180, capture_output=True)
+    r = subprocess.run(["sudo", "-n", "tee", "/proc/sys/vm/drop_caches"], input=b"3\n", timeout=180, capture_output=True)
     return r.returncode == 0
 
 
@@ -119,12 +119,30 @@ def start(cfg, log=print, timeout=400):
     return False
 
 
-def stop(cfg, log=print):
+def our_server_pids(cfg):
+    """PIDs of ComfyUI servers on our port whose command line runs OUR comfy_capped.py: never another user's process."""
     pattern = f"main.py --listen 127.0.0.1 --port {cfg['comfy']['port']}"
-    if cfg["comfy"].get("run_with_sudo"):
-        subprocess.run(["sudo", "-n", "pkill", "-9", "-f", pattern], check=False)
-    else:
-        subprocess.run(["pkill", "-9", "-f", pattern], check=False)
+    out = subprocess.run(["pgrep", "-f", pattern], capture_output=True, text=True).stdout.split()
+    pids = []
+    for pid in out:
+        try:
+            cmd = Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")
+        except OSError:
+            continue
+        if str(HERE / "comfy_capped.py") in cmd:
+            pids.append(int(pid))
+    return pids
+
+
+def stop(cfg, log=print):
+    pids = our_server_pids(cfg)
+    for pid in pids:
+        if cfg["comfy"].get("run_with_sudo"):
+            subprocess.run(["sudo", "-n", "kill", "-9", str(pid)], check=False)
+        else:
+            subprocess.run(["kill", "-9", str(pid)], check=False)
+    if not pids:
+        log("[server] no server of ours to stop")
     for _ in range(30):
         if not is_up(cfg):
             break
